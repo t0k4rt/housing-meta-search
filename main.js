@@ -4,9 +4,13 @@ const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
+const Datastore = require('nedb');
+const path = require('path')
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let db = new Datastore({ filename: path.join(app.getAppPath(), 'data.db') });
 
 function createWindow () {
   // Create the browser window.
@@ -25,6 +29,11 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  // laod db
+
+	db.loadDatabase();
+
 }
 
 // This method will be called when Electron has finished
@@ -49,5 +58,61 @@ app.on('activate', function () {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+
+
+const Immutable = require("immutable");
+const geocoder = require("./src/main/providers/seLoger/geocoder");
+const searchAdapter = require("./src/main/providers/seLoger/searchAdapter");
+const itemParser = require("./src/main/providers/seLoger/itemParser");
+
+const fetch = require("node-fetch");
+
+// console.log(geocoder);
+// geocoder.geoCodeFromString("75020")
+// 	.then(
+// 		(result) => { console.log(result); }
+// 		, (error) => {console.log(error);}
+// 	);
+
+
+let searchQuery = Immutable.Map({
+	"maxPrice": 1300,
+	"minPrice": 800,
+	//"rooms": undefined,
+	//"bedrooms": undefined,
+	"minSurface": 45,
+	//"maxSurface": undefined,
+	"housingType": 1,
+	"location": ["75019", "75020", "75018", "75017"]
+});
+
+
+const schedule = require('node-schedule');
+
+let j = schedule.scheduleJob('*/1 * * * *', function(){
+  console.log('Launch cron !!');
+  itemParser.parseListing(searchQuery).then((res) => {
+
+		//console.log(res.toJS());
+		res.map((v) => {
+			//console.log(v.has("ext_id"));
+			if(v.has("ext_id")) {
+				db.find({ ext_id:  v.get("ext_id")}, function (err, docs) {
+					console.log(err, docs.length);
+					if(docs.length === 0) {
+						db.insert(v.toJS(), function(err, newDocs){
+							mainWindow.send("documents", newDocs);
+						});
+					}
+				});
+			}
+		})
+	});
+});
+
+
+
+db.find({}, function (err, docs) {
+	mainWindow.send("documents", docs);
+});
+
