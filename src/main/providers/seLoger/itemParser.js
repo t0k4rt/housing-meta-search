@@ -20,25 +20,31 @@ let regexSurfaceLight = /([0-9,]*)\sm²/;
 let parseListing = function parseListing(searchObject) {
 	let query = searchAdapter.getSearchListingQuery(searchObject);
 
+	// fetch("http://www.whatsmyua.info/", {"headers":{"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:51.0) Gecko/20100101 Firefox/51.0"}})
+	// 	.then(r => r.text())
+	// 	.then(r => console.log(r));
+
+
 	return query.then((res) => {
 		return url.addQuery(res.toJS())
 	})
 	.then((url) => {
 		console.log(url.toString());
-		return fetch(url.toString());
+		return fetch(url.toString(), {"headers":{"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:51.0) Gecko/20100101 Firefox/51.0"}});
 	})
 	.then((res) => {
 		return res.text()
 	})
 	.then((body) => {
-
+		//console.log("start", body, "end");
 		$ = Cheerio.load(body);
 		let articles = $("article");
 		let result = Immutable.List();
 
 		articles.each(function (index, elt) {
-
+			let title = $(elt).find(".listing_infos>h2").text();
 			let $properties = $(elt).find(".property_list li");
+
 
 			let id = $(elt).attr("data-listing-id");
 
@@ -49,31 +55,21 @@ let parseListing = function parseListing(searchObject) {
 			let price = regexPrice.exec($price.text());
 			price = price ? parseInt(price[0].replace(/\s+/g, "")) : price;
 
-			try {
+			let $phone = $(elt).find(".agency_phone");
+			let phone = $phone.length > 0 ? $phone[0].attribs["data-phone"] : undefined;
+			phone = phone ? phone.replace(/[\s\+]*/,"") : phone;
 
-				let $phone = $(elt).find(".agency_phone");
-				var phone = $phone[0].attribs["data-phone"];
-
-			} catch (e) {
-				console.error('got a bad phone.');
-			}
-
-			try {
-				var link = ($price[0].attribs.href);
-				//result.push({providerId: elt.attribs.id, url: _url, provider: "seLoger"})
-			} catch (e) {
-				console.error('got a bad url for a building.');
-			}
-
+			let link = $price.length > 0 ? ($price[0].attribs.href) : undefined;
 
 			result = result.push(Immutable.Map({
 				"provider": "seloger",
+				"title": title,
 				"ext_id": id,
 				"price": price,
 				"surface": surface,
 				"phone": phone,
 				"link": link,
-				"signature": crypto.createHash('md5').update(price+""+surface+""+phone.replace(/[\s\+]*/,"")).digest("hex"),
+				"signature": crypto.createHash('md5').update(Immutable.List([price, surface, phone]).filter((v)=>{return v;}).join()).digest("hex"),
 				"searchQuery": searchObject
 			}).filter((v) => {return v != null;})); // return only set values
 		});

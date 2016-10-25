@@ -5,7 +5,7 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 
 const Datastore = require('nedb');
-const path = require('path')
+const path = require('path');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -67,13 +67,6 @@ const itemParser = require("./src/main/providers/seLoger/itemParser");
 
 const fetch = require("node-fetch");
 
-// console.log(geocoder);
-// geocoder.geoCodeFromString("75020")
-// 	.then(
-// 		(result) => { console.log(result); }
-// 		, (error) => {console.log(error);}
-// 	);
-
 
 let searchQuery = Immutable.Map({
 	"maxPrice": 1300,
@@ -89,30 +82,36 @@ let searchQuery = Immutable.Map({
 
 const schedule = require('node-schedule');
 
-let j = schedule.scheduleJob('*/1 * * * *', function(){
-  console.log('Launch cron !!');
-  itemParser.parseListing(searchQuery).then((res) => {
 
-		//console.log(res.toJS());
-		res.map((v) => {
-			//console.log(v.has("ext_id"));
-			if(v.has("ext_id")) {
-				db.find({ ext_id:  v.get("ext_id")}, function (err, docs) {
-					console.log(err, docs.length);
-					if(docs.length === 0) {
-						db.insert(v.toJS(), function(err, newDocs){
-							mainWindow.send("documents", newDocs);
-						});
-					}
-				});
-			}
-		})
-	});
-});
+// itemParser.parseListing(searchQuery).then((res) => {
+// 	console.log(res.toJS());
+// 	mainWindow.send("documents", res.toJS());
+// });
+
+// let j = schedule.scheduleJob('*/1 * * * *', function(){
+//   console.log('Launch cron !!');
+//   itemParser.parseListing(searchQuery).then((res) => {
+
+// 		//console.log(res.toJS());
+// 		res.map((v) => {
+// 			//console.log(v.has("ext_id"));
+// 			if(v.has("ext_id")) {
+// 				db.find({ ext_id:  v.get("ext_id")}, function (err, docs) {
+// 					console.log(err, docs.length);
+// 					if(docs.length === 0) {
+// 						db.insert(v.toJS(), function(err, newDocs){
+// 							mainWindow.send("documents", newDocs);
+// 						});
+// 					}
+// 				});
+// 			}
+// 		})
+// 	});
+// });
 
 
 
-db.find({}, function (err, docs) {
-	mainWindow.send("documents", docs);
-});
+// db.find({}, function (err, docs) {
+// 	mainWindow.send("documents", docs);
+// });
 

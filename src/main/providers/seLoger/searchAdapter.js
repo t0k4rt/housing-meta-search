@@ -103,7 +103,9 @@ class SearchAdapter{
 						}, initialValue);
 
 						// join results
-						return seLogerQuery.withMutations((map) => map.set("ci", newResult["ci"].join()).set("cp", newResult["cp"].join()).delete("location"));
+						return seLogerQuery.withMutations((map) => {
+							map.set("ci", newResult["ci"].join()).set("cp", newResult["cp"].join()).delete("location")
+						}).filter((v,k) => {return v;});
 					});
 		}
 	}
