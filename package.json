@@ -37,6 +37,7 @@
     "nedb": "^1.8.0",
     "node-fetch": "^1.6.3",
     "node-schedule": "^1.1.1",
+    "sendgrid": "^4.7.0",
     "urijs": "^1.18.2"
   }
 }

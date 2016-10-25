@@ -2,16 +2,22 @@ const Immutable = require("immutable");
 const Datastore = require('nedb');
 const path = require('path')
 const fetch = require("node-fetch");
-const mailgun = require('mailgun.js');
 const schedule = require('node-schedule');
 
 const geocoder = require("../../src/main/providers/seLoger/geocoder");
 const searchAdapter = require("../../src/main/providers/seLoger/searchAdapter");
 const itemParser = require("../../src/main/providers/seLoger/itemParser");
 
+
+const sendgrid = require("sendgrid")(process.env.SENDGRID_API_KEY||"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");
+
+
+
 console.info("application is starting");
 
-let mg = mailgun.client({username: 'api', key: process.env.MAILGUN_API_KEY || 'key-0dc9cbd690f818e2fd2272b95685454e'});
+//let mg = mailgun.client({username: 'api', key: process.env.MAILGUN_API_KEY || 'key-0dc9cbd690f818e2fd2272b95685454e'});
+
+
 let db = new Datastore({ filename: path.join(__dirname, 'db', 'data.db') });
 db.loadDatabase();
 console.info("db initialized");
@@ -81,7 +87,7 @@ let j = schedule.scheduleJob("*/10 * * * *", function(){
 
 		if(res.count() == 0) {
 			console.log("no new docs");
-			return;
+			//return;
 		} else {
 			console.log("found new documents : ", res.count());
 		}
@@ -108,15 +114,38 @@ let j = schedule.scheduleJob("*/10 * * * *", function(){
 
 		});
 
-		mg.messages.create('sandbox940eb08ed27d4d34aa97d46f3b3af0da.mailgun.org', {
-		    from: "Le messager <mailgun@sandbox-123.mailgun.org>",
-		    to: ["alexandre.assouad@gmail.com", "maurerclaire@aol.com"],
-		    subject: "Nouvelles annonces de logement !",
-		    text: mail_txt,
-		    html: mail_html
-		})
-		.then(msg => console.info(msg)) // logs response data
-		.catch(err => console.error(err)); // logs any error
+		// email.addTo("maurerclaire@aol.com")
+		// 	.addTo("alexandre.assouad@gmail.com");
+
+		// email.setFrom("aliababa@gmail.com");
+		// email.setSubject("Nouvelles annonces de logement !");
+		// email.setHtml("mail_html");
+
+
+
+		var helper = require('sendgrid').mail;
+		var from_email = new helper.Email('aliababa@gmail.com');
+		var to_email = new helper.Email('alexandre.assouad@gmail.com');
+		var subject = 'Nouvelles annonces de logement !';
+		var content = new helper.Content('text/html', mail_html);
+		var mail = new helper.Mail(from_email, subject, to_email, content);
+
+
+		var request = sendgrid.emptyRequest({
+		  method: 'POST',
+		  path: '/v3/mail/send',
+		  body: mail.toJSON(),
+		});
+
+		sendgrid.API(request, function(error, response) {
+			console.log("Sendgrid error", error);
+			console.log(response.statusCode);
+			console.log(response.body);
+			console.log(response.headers);
+		});
 	})
 });
+
+
+
 
