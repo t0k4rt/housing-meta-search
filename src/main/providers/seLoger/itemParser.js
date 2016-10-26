@@ -1,3 +1,4 @@
+"use strict";
 
 const Cheerio = require("cheerio");
 const fetch = require("node-fetch");

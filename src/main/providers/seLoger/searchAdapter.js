@@ -1,3 +1,5 @@
+"use strict";
+
 let url = require("urijs");
 let fetch = require("node-fetch");
 let config = require("./config");

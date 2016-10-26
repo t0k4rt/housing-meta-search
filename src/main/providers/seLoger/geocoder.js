@@ -1,6 +1,8 @@
-let url = require("urijs");
-let fetch = require("node-fetch");
-let config = require("./config");
+"use strict";
+
+const url = require("urijs");
+const fetch = require("node-fetch");
+const config = require("./config");
 
 /**
  * On ne peux pas utiliser directement un code postal sur Seloger
