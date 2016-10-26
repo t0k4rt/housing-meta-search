@@ -1,3 +1,5 @@
+"use strict";
+
 const Immutable = require("immutable");
 const Datastore = require('nedb');
 const path = require('path')
