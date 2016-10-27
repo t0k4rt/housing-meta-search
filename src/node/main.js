@@ -11,14 +11,11 @@ const searchAdapter = require("../../src/main/providers/seLoger/searchAdapter");
 const itemParser = require("../../src/main/providers/seLoger/itemParser");
 
 
-const sendgrid = require("sendgrid")(process.env.SENDGRID_API_KEY||"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");
+const sendgrid = require("sendgrid")(process.env.SENDGRID_API_KEY);
 
 
 
 console.info("application is starting");
-
-//let mg = mailgun.client({username: 'api', key: process.env.MAILGUN_API_KEY || 'key-0dc9cbd690f818e2fd2272b95685454e'});
-
 
 let db = new Datastore({ filename: path.join(__dirname, 'db', 'data.db') });
 db.loadDatabase();
